@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="D:/Udacity Data Science/Data Analysis Advanced Nanodegree Program/2. SQL for Data Analysis/PROJECT SQL Query a Digital Music Store Database/chinook-db/chinook_db/chinook.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3954"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,5:mainAlbum"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="Album" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="61"/><column index="2" value="300"/><column index="3" value="59"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SET1 _Q3.sql">SELECT c.CustomerId, c.FirstName, c.LastName, SUM(il.UnitPrice) AS total_purchase
+FROM Customer c
+JOIN Invoice i
+ON c.CustomerId = i.CustomerId
+JOIN InvoiceLine il
+ON i.InvoiceId = il.InvoiceId
+GROUP BY 1
+ORDER BY total_purchase DESC
+LIMIT 5</sql><sql name="SET2_Q2.sql">SELECT al.ArtistId, ar.Name artist_name, COUNT(*) AS genre_count
+FROM Album al
+JOIN Artist ar
+ON al.ArtistId = ar.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN Genre g
+ON g.GenreId = t.GenreId
+WHERE g.Name LIKE 'Rock'
+GROUP BY 1,2
+ORDER BY genre_count DESC
+LIMIT 10;
+
+
+</sql><sql name="SET2_Q3_PART1.sql">SELECT ar.Name artist_name, SUM(il.UnitPrice) AS total_earn
+FROM Artist ar
+JOIN Album al
+ON al.ArtistId = ar.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN InvoiceLine il
+ON t.TrackId = il.TrackId
+JOIN Invoice i
+ON il.InvoiceId = i.InvoiceId
+JOIN Customer c
+ON i.CustomerId = c.CustomerId
+GROUP BY 1
+ORDER BY total_earn DESC
+LIMIT 5</sql><sql name="SET2_Q3_PART2.sql">WITH top_artist AS(SELECT ar.Name artist_name, SUM(il.UnitPrice) AS total_earn
+FROM Artist ar
+JOIN Album al
+ON al.ArtistId = ar.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN InvoiceLine il
+ON t.TrackId = il.TrackId
+JOIN Invoice i
+ON il.InvoiceId = i.InvoiceId
+JOIN Customer c
+ON i.CustomerId = c.CustomerId
+GROUP BY 1
+ORDER BY total_earn DESC
+LIMIT 1)
+SELECT t.artist_name, c.CustomerId, c.FirstName, c.LastName, SUM(il.UnitPrice) AS customer_amount 
+FROM top_artist t
+JOIN Artist ar
+ON t.artist_name = ar.Name
+JOIN Album al
+ON al.ArtistId = ar.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN InvoiceLine il
+ON t.TrackId = il.TrackId
+JOIN Invoice i
+ON il.InvoiceId = i.InvoiceId
+JOIN Customer c
+ON i.CustomerId = c.CustomerId
+GROUP BY 3,4
+ORDER BY customer_amount DESC
+LIMIT 6;
+</sql><sql name="SET3_Q3">SELECT CUSTOMER_ID ,CUSTOMER_NAME, TOP_COUNTRY as MAX_SPENT_COUNTRY, TOTAL_SPENT
+FROM (SELECT c.CustomerId CUSTOMER_ID, c.FirstName || ' ' || c.LastName as CUSTOMER_NAME,i.BillingCountry TOP_COUNTRY, sum(i.total) TOTAL_SPENT
+      FROM Customer c
+      JOIN Invoice i
+      ON c.CustomerId = i.CustomerId
+      GROUP BY 1,2
+	  ORDER BY TOP_COUNTRY)
+WHERE TOTAL_SPENT = (SELECT MAX(TOTAL_SPENT) 
+                     FROM (SELECT c.CustomerId CUSTOMER_ID, i.BillingCountry TOP_COUNTRY, sum(i.total) TOTAL_SPENT
+                           FROM Customer c
+                           JOIN Invoice i
+                           ON c.CustomerId = i.CustomerId
+                           GROUP BY 1,2
+	                       ORDER BY TOP_COUNTRY)
+					WHERE MAX_SPENT_COUNTRY = TOP_COUNTRY
+					GROUP BY TOP_COUNTRY)</sql><current_tab id="4"/></tab_sql></sqlb_project>
