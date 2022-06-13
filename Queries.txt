@@ -1,0 +1,86 @@
+SET1 _Q3
+
+SELECT c.CustomerId, c.FirstName, c.LastName, SUM(il.UnitPrice) AS total_purchase
+FROM Customer c
+JOIN Invoice i
+ON c.CustomerId = i.CustomerId
+JOIN InvoiceLine il
+ON i.InvoiceId = il.InvoiceId
+GROUP BY 1
+ORDER BY total_purchase DESC
+LIMIT 10;
+
+
+
+SET 2 -Q2
+
+SELECT al.ArtistId, ar.Name artist_name, COUNT(*) AS genre_count
+FROM Album al
+JOIN Artist ar
+ON al.ArtistId = ar.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN Genre g
+ON g.GenreId = t.GenreId
+WHERE g.Name LIKE 'Rock'
+GROUP BY 1,2
+ORDER BY genre_count DESC
+LIMIT 10;
+
+
+
+SET2 _ Q3
+
+WITH top_artist AS(SELECT ar.Name artist_name, SUM(il.UnitPrice) AS total_earn
+                   FROM Artist ar
+                   JOIN Album al
+                   ON al.ArtistId = ar.ArtistId
+                   JOIN Track t
+                   ON t.AlbumId = al.AlbumId
+                   JOIN InvoiceLine il
+                   ON t.TrackId = il.TrackId
+                   JOIN Invoice i
+                   ON il.InvoiceId = i.InvoiceId
+                   JOIN Customer c
+                   ON i.CustomerId = c.CustomerId
+                   GROUP BY 1
+                   ORDER BY total_earn DESC
+                   LIMIT 1)
+SELECT t.artist_name, c.CustomerId, c.FirstName, c.LastName, SUM(il.UnitPrice) AS customer_amount 
+FROM top_artist t
+JOIN Artist ar
+ON t.artist_name = ar.Name
+JOIN Album al
+ON al.ArtistId = ar.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN InvoiceLine il
+ON t.TrackId = il.TrackId
+JOIN Invoice i
+ON il.InvoiceId = i.InvoiceId
+JOIN Customer c
+ON i.CustomerId = c.CustomerId
+GROUP BY 3,4
+ORDER BY customer_amount DESC
+LIMIT 6;
+
+
+
+SET3 - Q3
+
+SELECT TOP_COUNTRY as MAX_SPENT_COUNTRY, TOTAL_SPENT, FirstName, LastName, CUSTOMER_ID 
+FROM (SELECT c.CustomerId CUSTOMER_ID, c.FirstName, c.LastName, i.BillingCountry TOP_COUNTRY, sum(i.total) TOTAL_SPENT
+      FROM Customer c
+      JOIN Invoice i
+      ON c.CustomerId = i.CustomerId
+      GROUP BY 1,2
+	  ORDER BY TOP_COUNTRY)
+WHERE TOTAL_SPENT = (SELECT MAX(TOTAL_SPENT) 
+                     FROM (SELECT c.CustomerId CUSTOMER_ID, i.BillingCountry TOP_COUNTRY, sum(i.total) TOTAL_SPENT
+                           FROM Customer c
+                           JOIN Invoice i
+                           ON c.CustomerId = i.CustomerId
+                           GROUP BY 1,2
+	                   ORDER BY TOP_COUNTRY)
+		     WHERE MAX_SPENT_COUNTRY = TOP_COUNTRY
+		     GROUP BY TOP_COUNTRY)
